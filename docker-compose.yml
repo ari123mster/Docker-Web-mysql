@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  php:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: laundry-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - laundry-networks
+
+  nginx:
+    image: nginx:1.19-alpine
+    container_name: laundry-web
+    restart: unless-stopped
+    ports:
+      - "8880:80"
+    volumes:
+      # - ./:/var/www/html
+      - ./nginx:/etc/nginx/conf.d
+    networks:
+      - laundry-networks
+    depends_on:
+      - php
+  mysql:
+    image: mysql:5.7.22
+    container_name: laundry-mysql
+    # restart: unless-stopped
+    # tty: true
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./dbdata:/var/lib/mysql
+    networks:
+      - laundry-networks
+    environment:
+      MYSQL_DATABASE: loundry
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+
+networks:
+  laundry-networks:
+    driver: bridge
